@@ -1,0 +1,30 @@
+from setuptools import setup, find_packages
+
+setup(
+  name = 'deep_robotics_retarget',
+  packages = find_packages(),
+  author="deep-robotics",
+  author_email="",
+  description="retargeting for humanoid robots",
+  url="https://github.com/DeepRoboticsLab/deep-robotics-retarget",
+  license="MIT",
+  version="0.2.0",
+  install_requires=[
+    "loop_rate_limiters",
+    "mink",
+    "mujoco",
+    "numpy",
+    "scipy",
+    "qpsolvers[proxqp]",
+    "rich",
+    "tqdm",
+    "opencv-python",
+    "natsort",
+    "psutil",
+    "smplx @ git+https://github.com/vchoutas/smplx",
+    "protobuf",
+    "redis[hiredis]",
+    "imageio[ffmpeg]",
+  ],
+  python_requires='>=3.10',
+)

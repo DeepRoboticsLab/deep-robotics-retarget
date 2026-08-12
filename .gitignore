@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+*.egg
+dist/
+build/
+*.so
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Output
+output/
+videos/
+*.pkl
+MUJOCO_LOG.TXT
+
+# Large data files
+source_data/ACCAD/
+*.npz
+
+# Third-party build artifacts
+XRoboToolkit-PC-Service-Pybind/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# output 
+plots/
+videos/
