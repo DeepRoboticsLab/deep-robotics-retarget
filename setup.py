@@ -25,6 +25,7 @@ setup(
     "protobuf",
     "redis[hiredis]",
     "imageio[ffmpeg]",
+    "matplotlib",
   ],
   python_requires='>=3.10',
 )

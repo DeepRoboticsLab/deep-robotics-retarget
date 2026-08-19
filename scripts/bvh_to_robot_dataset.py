@@ -4,7 +4,16 @@ Processes a folder of BVH files, retargets each to robot joint configurations,
 computes local body positions via forward kinematics, and saves as pickle files.
 
 Usage:
-    python scripts/bvh_to_robot_dataset.py --src_folder /path/to/bvh --tgt_folder /path/to/output
+    python scripts/bvh_to_robot_dataset.py \
+        --src_folder source_data/nokov_demo/ \
+        --tgt_folder output/motion_pkl/ \
+        --format nokov
+or: 
+    python scripts/bvh_to_robot_dataset.py \
+        --src_folder source_data/lafan1_demo/ \
+        --tgt_folder output/motion_pkl/ \
+        --format lafan1
+
 """
 
 import argparse
@@ -50,9 +59,10 @@ if __name__ == "__main__":
     )
     
     parser.add_argument(
-        "--target_fps",
-        default=30,
+        "--motion_fps",
+        default=None,
         type=int,
+        help="Motion FPS. If not specified, defaults to 30 for lafan1, 200 for nokov.",
     )
 
     parser.add_argument(
@@ -62,6 +72,10 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
+
+    # Set default motion_fps based on format if not provided
+    if args.motion_fps is None:
+        args.motion_fps = 30 if args.format == "lafan1" else 200
     
     src_folder = args.src_folder
     tgt_folder = args.tgt_folder
@@ -102,7 +116,7 @@ if __name__ == "__main__":
             lafan1_data_frames, actual_human_height = load_bvh_file(
                 bvh_file_path, format=args.format
             )
-            src_fps = 30 if args.format == "lafan1" else args.target_fps
+            src_fps = args.motion_fps
         except Exception as e:
             print(f"Error loading {bvh_file_path}: {e}")
             num_failed += 1

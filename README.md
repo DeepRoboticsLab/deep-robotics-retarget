@@ -2,13 +2,17 @@
 
 [中文](README_cn.md)
 
-## Overview
+<p align="center">
+  <img src="boxing.gif" width="80%" alt="Motion Retargeting Demo">
+</p>
+
+## 1. Overview
 
 deep-robotics-retarget is a Python toolkit that uses inverse kinematics (IK) to retarget human motion data to humanoid robot joint configurations. It supports multiple human motion data sources and provides real-time visualization based on MuJoCo. Currently, the project supports the DR02 Pro robot model.
 
 This project is modified from the [GMR](https://github.com/YanjieZe/GMR/tree/master) project.
 
-## Features
+## 2. Features
 
 - **Multiple Input Sources**: Supports SMPLX, BVH (Lafan1 / Nokov), and other motion capture formats
 - **Two-Stage IK Solving**: Orientation-only tracking followed by combined position + orientation tracking
@@ -17,7 +21,7 @@ This project is modified from the [GMR](https://github.com/YanjieZe/GMR/tree/mas
 - **Real-Time Visualization**: MuJoCo-based viewer with human motion overlay
 - **Batch Processing**: Dataset-scale motion retargeting
 
-## Supported Robots
+## 3. Supported Robots
 
 | Robot | Status |
 |-------|--------|
@@ -29,14 +33,50 @@ The framework is designed to be extensible. To add a new robot:
 2. Create an IK configuration JSON in `general_motion_retargeting/ik_configs/`
 3. Register the robot in `general_motion_retargeting/params.py`
 
-## Installation
+### 3.1 Key Dependencies
 
-### Requirements
+- `mujoco` — Physics simulation and visualization
+- `mink` — Inverse kinematics solver
+- `smplx` — SMPL-X body model (installed from [GitHub](https://github.com/vchoutas/smplx))
+- `qpsolvers[proxqp]` — QP solver for IK
+- `redis[hiredis]` — Real-time streaming
+
+## 4. Data Preparation
+
+### 4.1 SMPLX Model
+
+Download the body model from the [SMPL-X](https://smpl-x.is.tue.mpg.de/) official website. It is recommended to download the SMPL-X with removed head bun (NPZ, 392MB) version. Extract and place it in the `assets/body_models/smplx/` folder:
+
+```
+assets/body_models/smplx/
+├── SMPLX_NEUTRAL.npz
+├── SMPLX_FEMALE.npz
+└── SMPLX_MALE.npz
+```
+
+> [!NOTE]
+> This project uses `npz` model files by default. If you downloaded `pkl` format files from the SMPL-X website, you need to change the `ext` parameter in the `create()` function within the `smplx` library's `smplx/body_model.py` from the default value `npz` to `pkl`, or convert the `pkl` files to `npz` format.
+
+### 4.2 AMASS Data
+
+Download raw data from [AMASS](https://amass.is.tue.mpg.de/) to any location. Make sure to select bodies as `SMPL-X G` or `SMPL-X N`. It is recommended to place it under `source_data/AMASS/`. For quick start, two sample files are provided in `source_data/AMASS_demo/`.
+
+### 4.3 LAFAN1 Data
+
+Download raw BVH files from the [LAFAN repository](https://github.com/ubisoft/ubisoft-laforge-animation-dataset) ([lafan1.zip](https://github.com/ubisoft/ubisoft-laforge-animation-dataset/blob/master/lafan1/lafan1.zip)), extract and place them under `source_data/lafan1/`. For quick start, two sample files are provided in `source_data/lafan1_demo/`.
+
+### 4.4 Nokov Data
+
+Capture the required data using Nokov motion capture equipment. For quick start, three sample files are provided in `source_data/nokov_demo/`.
+
+## 5. Installation
+
+### 5.1 Requirements
 
 - Python >= 3.10
 - Linux (Ubuntu 22.04 / 24.04 recommended)
 
-### Install Steps
+### 5.2 Install Steps
 
 > [!NOTE]
 > This project has been tested on Ubuntu 24.04.
@@ -58,84 +98,31 @@ cd deep-robotics-retarget
 # Update libstdc++
 conda install -c conda-forge libstdcxx-ng -y
 
-# Install the package
+# Install the package (editable mode recommended)
 pip install -e .
 ```
 
+> [!TIP]
+> If using `pip install .` (non-editable mode), you need to set the environment variable to the project root:
+> ```bash
+> export DEEP_ROBOTICS_RETARGET_ROOT=/path/to/deep-robotics-retarget
+> ```
+
 Install PICO SDK:
 
-- Download the [PICO package](https://github.com/XR-Robotics/XRoboToolkit-PC-Service/releases/download/v1.0.0/XRoboToolkit_PC_Service_1.0.0_ubuntu_22.04_amd64.deb) and install:
-  `sudo dpkg -i XRoboToolkit_PC_Service_1.0.0_ubuntu_22.04_amd64.deb`
-  , or build from [source](https://github.com/XR-Robotics/XRoboToolkit-PC-Service)
+```bash
+# Pull submodules
+git submodule update --init
 
-- Build the PICO PC Service SDK:
-```
-conda activate retarget
-
-git clone https://github.com/YanjieZe/XRoboToolkit-PC-Service-Pybind.git
-cd XRoboToolkit-PC-Service-Pybind
-
-mkdir -p tmp
-cd tmp
-git clone https://github.com/XR-Robotics/XRoboToolkit-PC-Service.git
-cd XRoboToolkit-PC-Service/RoboticsService/PXREARobotSDK
-bash build.sh
-cd ../../../..
-
-mkdir -p lib
-mkdir -p include
-cp tmp/XRoboToolkit-PC-Service/RoboticsService/PXREARobotSDK/PXREARobotSDK.h include/
-cp -r tmp/XRoboToolkit-PC-Service/RoboticsService/PXREARobotSDK/nlohmann include/nlohmann/
-cp tmp/XRoboToolkit-PC-Service/RoboticsService/PXREARobotSDK/build/libPXREARobotSDK.so lib/
-# rm -rf tmp
-
-# Build the project
-conda install -c conda-forge pybind11
-pip uninstall -y xrobotoolkit_sdk
-python setup.py install
+# Run the build script
+bash XRobotPico_build.sh
 ```
 
-### Key Dependencies
+## 6. Quick Start
 
-- `mujoco` — Physics simulation and visualization
-- `mink` — Inverse kinematics solver
-- `smplx` — SMPL-X body model (installed from [GitHub](https://github.com/vchoutas/smplx))
-- `qpsolvers[proxqp]` — QP solver for IK
-- `redis[hiredis]` — Real-time streaming
+### 6.1 SMPLX Motion Retargeting
 
-## Data Preparation
-
-### SMPLX Model
-
-Download the body model from the [SMPL-X](https://smpl-x.is.tue.mpg.de/) official website, extract and place it in the `assets/body_models/smplx/` folder:
-
-```
-assets/body_models/smplx/
-├── SMPLX_NEUTRAL.npz
-├── SMPLX_FEMALE.npz
-└── SMPLX_MALE.npz
-```
-
-> [!NOTE]
-> This project uses `npz` model files by default. If you downloaded `pkl` format files from the SMPL-X website, you need to change the `ext` parameter in the `create()` function within the `smplx` library's `smplx/body_model.py` from the default value `npz` to `pkl`, or convert the `pkl` files to `npz` format.
-
-### AMASS Data
-
-Download raw data from [AMASS](https://amass.is.tue.mpg.de/) to any location. It is recommended to place it under `source_data/AMASS/`. For quick start, two sample files are provided in `source_data/AMASS_demo/`.
-
-### LAFAN1 Data
-
-Download raw BVH files from the [LAFAN repository](https://github.com/ubisoft/ubisoft-laforge-animation-dataset) ([lafan1.zip](https://github.com/ubisoft/ubisoft-laforge-animation-dataset/blob/master/lafan1/lafan1.zip)), extract and place them under `source_data/lafan1/`. For quick start, two sample files are provided in `source_data/lafan1_demo/`.
-
-### Nokov Data
-
-Capture the required data using Nokov motion capture equipment. For quick start, three sample files are provided in `source_data/nokov_demo/`.
-
-## Quick Start
-
-### SMPLX Motion Retargeting
-
-#### Single Motion Retargeting
+#### 6.1.1 Single Motion Retargeting
 
 ```bash
 python scripts/smplx_to_robot.py \
@@ -152,7 +139,7 @@ Optional parameters:
 - `--record_video`: Record a video of the robot motion retargeting, saved to the `videos/` folder
 - `--robot`: Select the robot model for retargeting, default is `DR02_pro`
 
-#### Batch Motion Retargeting
+#### 6.1.2 Batch Motion Retargeting
 
 ```bash
 python scripts/smplx_to_robot_dataset.py \
@@ -162,25 +149,33 @@ python scripts/smplx_to_robot_dataset.py \
 
 By default, batch motion retargeting does not visualize the motion.
 
-### BVH Motion Retargeting
+### 6.2 BVH Motion Retargeting
+> [!NOTE]
+> Default FPS: lafan1=30, nokov=200. Use --motion_fps to customize the data sampling frequency.
 
-#### Single Motion Retargeting
+
+#### 6.2.1 Single Motion Retargeting
 
 ```bash
 # Lafan1 format
 python scripts/bvh_to_robot.py \
     --bvh_file <path_to_bvh_data> \
     --save_path <path_to_save_robot_data.pkl> \
-    --format lafan1
+    --format lafan1 \
+    --rate_limit \
+    --motion_fps 30
+
 
 # Nokov format
 python scripts/bvh_to_robot.py \
     --bvh_file <path_to_bvh_data> \
     --save_path <path_to_save_robot_data.pkl> \
-    --format nokov
+    --format nokov \
+    --rate_limit \
+    --motion_fps 200
 ```
 
-#### Batch Motion Retargeting
+#### 6.2.2 Batch Motion Retargeting
 
 ```bash
 # Lafan1 format
@@ -196,9 +191,9 @@ python scripts/bvh_to_robot_dataset.py \
     --format nokov
 ```
 
-### Utility Tools
+### 6.3 Utility Tools
 
-#### Data Transfer
+#### 6.3.1 Data Conversion
 
 ```bash
 # Single file
@@ -213,19 +208,19 @@ python scripts/pkl_to_npz.py \
 
 ```
 
-#### Visualize Retargeted Motion
+#### 6.3.2 Visualize Retargeted Motion
 
 ```bash
 # Single motion
 python scripts/vis_robot_motion.py \
-    --robot_motion_path path/to/retargeted.pkl
+    --robot_motion_path <path_to_pkl_data>
 
 # Dataset browsing (use '[' and ']' to switch motions)
 python scripts/vis_robot_motion_dataset.py \
-    --robot_motion_folder /path/to/retargeted_motions
+    --robot_motion_folder <path_to_dir_of_pkl_data>
 ```
 
-#### Plot Retargeting Results
+#### 6.3.3 Plot Retargeting Results
 
 ```bash
 python scripts/plot_retarget_motion.py \
@@ -235,7 +230,7 @@ python scripts/plot_retarget_motion.py \
 
 Results are saved in the `plots/` folder, including plots of root position, root orientation, and joint angles over time.
 
-## Python API
+## 7. Python API
 
 ```python
 from general_motion_retargeting import GeneralMotionRetargeting, RobotMotionViewer
@@ -257,7 +252,7 @@ root_rot = qpos[3:7]             # quaternion (wxyz)
 joint_angles = qpos[7:]
 ```
 
-## Project Structure
+## 8. Project Structure
 
 ```
 deep-robotics-retarget/
@@ -289,6 +284,6 @@ deep-robotics-retarget/
 └── source_data/                    # Sample motion data
 ```
 
-## License
+## 9. License
 
-This project is licensed under the MIT License.
+This project is licensed under the BSD 3-Clause License. The original [GMR](https://github.com/YanjieZe/GMR) project is licensed under the MIT License, see `LICENSE_GMR`.

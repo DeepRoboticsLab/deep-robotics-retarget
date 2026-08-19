@@ -4,7 +4,7 @@ Loads a folder of pickle motion files and allows browsing between them
 using '[' and ']' keys. Supports pause/resume and frame seeking.
 
 Usage:
-    python scripts/vis_robot_motion_dataset.py --robot_motion_folder /path/to/motions
+    python scripts/vis_robot_motion_dataset.py --robot_motion_folder output/motion_pkl/
 """
 
 from general_motion_retargeting import PlaybackController, RobotMotionViewer, load_robot_motion

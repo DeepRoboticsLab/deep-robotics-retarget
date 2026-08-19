@@ -9,10 +9,7 @@ Runs retargeting (without MuJoCo viewer) and collects per-frame:
 Then generates 4 sets of plots and saves as PNG.
 
 Usage:
-  python scripts/plot_retarget_motion.py \
-      --bvh_file source_data/nokov_demo/gmr.bvh \
-      --robot DR02_pro --format nokov \
-      --output_dir plots
+  python scripts/plot_retarget_motion.py --bvh_file source_data/nokov_demo/bow.bvh --format nokov
 """
 
 import argparse

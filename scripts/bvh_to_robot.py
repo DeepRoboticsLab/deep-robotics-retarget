@@ -4,7 +4,19 @@ Supports Lafan1 and Nokov BVH formats. Performs IK-based retargeting
 with optional collision avoidance and real-time visualization.
 
 Usage:
-    python scripts/bvh_to_robot.py --bvh_file path/to/motion.bvh --format lafan1
+    python scripts/bvh_to_robot.py \
+        --bvh_file source_data/lafan1_demo/dance1_subject1.bvh \
+        --save_path output/motion_pkl/dance.pkl \
+        --format lafan1 \
+        --rate_limit \
+        --motion_fps 30
+
+or:
+    python scripts/bvh_to_robot.py \
+        --bvh_file source_data/nokov_demo/wave.bvh \
+        --save_path output/motion_pkl/wave.pkl \
+        --format nokov \
+        --rate_limit
 """
 
 import argparse
@@ -85,8 +97,9 @@ if __name__ == "__main__":
     
     parser.add_argument(
         "--motion_fps",
-        default=200,
+        default=None,
         type=int,
+        help="Motion FPS. If not specified, defaults to 30 for lafan1, 200 for nokov.",
     )
     
     parser.add_argument(
@@ -96,6 +109,10 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
+
+    # Set default motion_fps based on format if not provided
+    if args.motion_fps is None:
+        args.motion_fps = 30 if args.format == "lafan1" else 200
 
     if args.save_path is not None:
         save_dir = os.path.dirname(args.save_path)

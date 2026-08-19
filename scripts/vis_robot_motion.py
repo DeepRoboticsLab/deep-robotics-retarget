@@ -4,7 +4,7 @@ Loads a pickle motion file and displays it in MuJoCo viewer with
 pause/resume and frame seeking via PlaybackController GUI.
 
 Usage:
-    python scripts/vis_robot_motion.py --robot_motion_path path/to/motion.pkl
+    python scripts/vis_robot_motion.py --robot_motion_path output/bow.pkl
 """
 
 from general_motion_retargeting import PlaybackController, RobotMotionViewer, load_robot_motion

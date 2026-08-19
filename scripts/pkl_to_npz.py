@@ -5,10 +5,10 @@ for positions and SLERP for rotations.
 
 Usage:
     # Batch mode (folder)
-    python scripts/pkl_to_npz.py --input_dir /path/to/pkl --output_dir /path/to/npz
+    python scripts/pkl_to_npz.py --input_dir output/ --output_dir output/npz_file/
 
     # Single-file mode
-    python scripts/pkl_to_npz.py --input /path/to/file.pkl --output /path/to/file.npz
+    python scripts/pkl_to_npz.py --input output/bow.pkl --output output/npz_file/bow.npz
 """
 
 import argparse

@@ -4,7 +4,10 @@ Loads SMPLX motion data, aligns FPS, and performs IK-based retargeting
 with real-time visualization. Optionally saves the retargeted motion.
 
 Usage:
-    python scripts/smplx_to_robot.py --smplx_file path/to/motion.npz
+    python scripts/smplx_to_robot.py \
+        --smplx_file source_data/AMASS_demo/A5-_Pick_up_box_stageii.npz \
+        --save_path output/motion_pkl/pick_up.pkl \
+        --rate_limit
 """
 
 import argparse

@@ -4,7 +4,9 @@ Processes a folder of SMPLX files with multiprocessing support, retargets
 each to robot joint configurations, and saves as pickle files.
 
 Usage:
-    python scripts/smplx_to_robot_dataset.py --src_folder /path/to/smplx --tgt_folder /path/to/output
+    python scripts/smplx_to_robot_dataset.py \
+        --src_folder source_data/AMASS_demo/ \
+        --tgt_folder output/motion_pkl/
 """
 
 import argparse
@@ -32,7 +34,7 @@ import psutil
 import tracemalloc
 
 
-def check_memory(threshold_gb=30):  # adjust based on your available memory
+def check_memory(threshold_gb=4):  # adjust based on your available memory
     mem = psutil.virtual_memory()
     used_memory_gb = (mem.total - mem.available) / (1024 ** 3)
     available_memory_gb = mem.available / (1024 ** 3)
@@ -45,7 +47,7 @@ def check_memory(threshold_gb=30):  # adjust based on your available memory
 HERE = pathlib.Path(__file__).parent
 
 
-def process_file(smplx_file_path, tgt_file_path, tgt_robot, SMPLX_FOLDER, tgt_folder, total_files, verbose=False):
+def process_file(smplx_file_path, tgt_file_path, tgt_robot, SMPLX_FOLDER, tgt_folder, total_files, memory_threshold_gb=4, verbose=False):
     def log_memory(message):
         if verbose:
             process = psutil.Process(os.getpid())
@@ -60,7 +62,7 @@ def process_file(smplx_file_path, tgt_file_path, tgt_robot, SMPLX_FOLDER, tgt_fo
     log_memory("Initial memory usage")
     
     num_pause = 0
-    while check_memory():
+    while check_memory(memory_threshold_gb):
         print(f"[PAUSE] Paused processing {smplx_file_path} to prevent memory overflow. num_pause: {num_pause}")
         time.sleep(60*2)
         num_pause += 1
@@ -99,7 +101,7 @@ def process_file(smplx_file_path, tgt_file_path, tgt_robot, SMPLX_FOLDER, tgt_fo
 
     log_memory("After retargeting")
     
-    device = "cuda:0"
+    device = "cuda:0" if torch.cuda.is_available() else "cpu"
     kinematics_model = KinematicsModel(retargeter.xml_file, device=device)
 
     try:
@@ -189,6 +191,8 @@ def main():
     
     parser.add_argument("--override", default=False, action="store_true")
     parser.add_argument("--num_cpus", default=4, type=int)
+    parser.add_argument("--memory_threshold_gb", default=4, type=int, 
+                        help="Minimum available memory (GB) required before processing a file. Default: 4")
     args = parser.parse_args()
     
     # print the total number of cpus and gpus
@@ -203,10 +207,12 @@ def main():
 
     verbose = False
 
+    hard_motions = []
     hard_motions_paths = [hard_motions_folder / "0.txt", 
                           hard_motions_folder / "1.txt"]
-    hard_motions = []
     for hard_motions_path in hard_motions_paths:
+        if not hard_motions_path.exists():
+            continue
         with open(hard_motions_path, "r") as f:
             for line in f:
                 if "Motion:" in line:
@@ -248,7 +254,7 @@ def main():
     total_files = len(args_list)
     print(f"Total number of files to process: {total_files}")
     with mp.Pool(args.num_cpus) as pool:
-        pool.starmap(process_file, [args + (total_files, verbose) for args in args_list])
+        pool.starmap(process_file, [a + (total_files, args.memory_threshold_gb, verbose) for a in args_list])
 
     print("Done. Saved to ", tgt_folder)
 
