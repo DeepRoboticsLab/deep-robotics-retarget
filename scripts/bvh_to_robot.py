@@ -9,7 +9,16 @@ Usage:
 
 import argparse
 import pathlib
+import sys
 import time
+
+# Prefer the source tree when this script is run directly.  Without this,
+# Python only adds ``scripts/`` to sys.path and may import an older, non-editable
+# installation whose robot asset paths point inside site-packages.
+PROJECT_ROOT = pathlib.Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
 from general_motion_retargeting import GeneralMotionRetargeting as GMR
 from general_motion_retargeting import RobotMotionViewer
 from general_motion_retargeting.utils.lafan1 import load_bvh_file
@@ -163,6 +172,9 @@ if __name__ == "__main__":
 
         # retarget
         qpos = retargeter.retarget(bvh_data)
+
+        if args.save_path is not None:
+            qpos_list.append(qpos.copy())
         
 
         # visualize
@@ -184,9 +196,6 @@ if __name__ == "__main__":
                 break
    
         
-        if args.save_path is not None:
-            qpos_list.append(qpos)
-    
     if args.save_path is not None:
         import pickle
         root_pos = np.array([qpos[:3] for qpos in qpos_list])

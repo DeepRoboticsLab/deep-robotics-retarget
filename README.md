@@ -70,7 +70,7 @@ Install PICO SDK:
 
 - Build the PICO PC Service SDK:
 ```
-conda activate retargeting
+conda activate retarget
 
 git clone https://github.com/YanjieZe/XRoboToolkit-PC-Service-Pybind.git
 cd XRoboToolkit-PC-Service-Pybind
