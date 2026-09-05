@@ -18,7 +18,10 @@ import multiprocessing as mp
 import mujoco as mj
 import numpy as np
 from scipy.spatial.transform import Rotation as R
-from tqdm import tqdm
+from batch_progress import BatchProgress
+from queue import Empty
+import sys
+import traceback
 from natsort import natsorted
 from rich import print
 import torch
@@ -45,6 +48,24 @@ def check_memory(threshold_gb=4):  # adjust based on your available memory
 
 
 HERE = pathlib.Path(__file__).parent
+
+
+def init_worker(events, log_path, source_folder):
+    global progress_events, batch_source_folder
+    progress_events = events
+    batch_source_folder = source_folder
+    # Each worker keeps diagnostics out of the parent's live display.
+    sys.stdout = sys.stderr = open(log_path, "a", buffering=1)
+
+
+def process_batch_file(arguments):
+    try:
+        success = process_file(*arguments)
+    except Exception:
+        print(f"Error processing {arguments[0]}:")
+        traceback.print_exc()
+        success = False
+    progress_events.put(("done", bool(success)))
 
 
 def process_file(smplx_file_path, tgt_file_path, tgt_robot, SMPLX_FOLDER, tgt_folder, total_files, memory_threshold_gb=4, verbose=False):
@@ -87,6 +108,8 @@ def process_file(smplx_file_path, tgt_file_path, tgt_robot, SMPLX_FOLDER, tgt_fo
         return
     
     # retarget
+    progress_events.put(("started", os.path.relpath(smplx_file_path, batch_source_folder),
+                         len(smplx_frame_data_list), time.monotonic()))
     retargeter = GMR(
         src_human="smplx",
         tgt_robot=tgt_robot,
@@ -156,11 +179,6 @@ def process_file(smplx_file_path, tgt_file_path, tgt_robot, SMPLX_FOLDER, tgt_fo
     with open(tgt_file_path, "wb") as f:
         pickle.dump(motion_data, f)
         
-    # Progress print based on tgt_folder
-    done = 0
-    for root, _, files in os.walk(tgt_folder):
-        done += len([f for f in files if f.endswith('.pkl')])
-    print(f"Processed {done}/{total_files}: {tgt_file_path}")
     
     if verbose:
         # Get memory snapshot
@@ -176,6 +194,7 @@ def process_file(smplx_file_path, tgt_file_path, tgt_robot, SMPLX_FOLDER, tgt_fo
     # clean cache
     torch.cuda.empty_cache()
     gc.collect()
+    return True
     
 
 
@@ -195,9 +214,6 @@ def main():
                         help="Minimum available memory (GB) required before processing a file. Default: 4")
     args = parser.parse_args()
     
-    # print the total number of cpus and gpus
-    print(f"Total CPUs: {mp.cpu_count()}")
-    print(f"Using {args.num_cpus} CPUs.")
     
     src_folder = args.src_folder
     tgt_folder = args.tgt_folder
@@ -233,7 +249,6 @@ def main():
                 tgt_file_path = smplx_file_path.replace(src_folder, tgt_folder).replace(".npz", ".pkl")
                 if not os.path.exists(tgt_file_path) or args.override:
                     args_list.append((smplx_file_path, tgt_file_path, args.robot, SMPLX_FOLDER, tgt_folder))
-    print("full args_list:", len(args_list))
     
     # remove hard and infeasible motions
     exclude_file_content = ["BMLrub", "EKUT", "crawl", "_lie", "upstairs", "downstairs"]
@@ -249,14 +264,34 @@ def main():
     args_list = new_args_list
     
     
-    print("new args_list:", len(args_list))
     
     total_files = len(args_list)
-    print(f"Total number of files to process: {total_files}")
-    with mp.Pool(args.num_cpus) as pool:
-        pool.starmap(process_file, [a + (total_files, args.memory_threshold_gb, verbose) for a in args_list])
-
-    print("Done. Saved to ", tgt_folder)
+    events = mp.Queue()
+    try:
+        progress = BatchProgress(total_files, tgt_folder)
+        with mp.Pool(args.num_cpus, initializer=init_worker,
+                     initargs=(events, progress.log_path, src_folder)) as pool:
+            with progress:
+                result = pool.map_async(process_batch_file,
+                    [a + (total_files, args.memory_threshold_gb, verbose) for a in args_list],
+                    chunksize=1)
+                completed = 0
+                while completed < total_files:
+                    try:
+                        event = events.get(timeout=0.2)
+                    except Empty:
+                        if result.ready():
+                            result.get()  # Surface pool errors instead of waiting forever.
+                        continue
+                    if event[0] == "started":
+                        progress.started(*event[1:])
+                    else:
+                        progress.advance(success=event[1])
+                        completed += 1
+                result.get()
+    finally:
+        events.close()
+        events.join_thread()
 
 
 if __name__ == "__main__":
