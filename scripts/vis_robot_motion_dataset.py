@@ -48,9 +48,13 @@ if __name__ == "__main__":
     if not os.path.exists(robot_motion_folder):
         raise FileNotFoundError(f"Motion data dir {robot_motion_folder} does not exist.")
     
-    motion_files = [f for f in os.listdir(robot_motion_folder) if f.endswith('.pkl')]
+    motion_files = [os.path.relpath(os.path.join(root, f), robot_motion_folder)
+                    for root, _, files in os.walk(robot_motion_folder)
+                    for f in files if f.endswith('.pkl')]
     motion_files = sorted(motion_files)
     motion_num = len(motion_files)
+    if motion_num == 0:
+        raise FileNotFoundError(f"No .pkl motion files found in {robot_motion_folder} or its subfolders.")
     print(f"Found {motion_num} motion files in {robot_motion_folder}, loading...")
     motion_dataset = []
     for motion_file in tqdm(motion_files):
