@@ -1,13 +1,13 @@
 """Visualize a dataset of retargeted robot motions with navigation.
 
 Loads a folder of pickle motion files and allows browsing between them
-using '[' and ']' keys. Supports pause/resume and frame seeking.
+using '[' and ']' keys. Press Space in the viewer to pause/resume.
 
 Usage:
     python scripts/vis_robot_motion_dataset.py --robot_motion_folder output/motion_pkl/
 """
 
-from general_motion_retargeting import PlaybackController, RobotMotionViewer, load_robot_motion
+from general_motion_retargeting import RobotMotionViewer, load_robot_motion
 import argparse
 import os
 from tqdm import tqdm
@@ -16,18 +16,14 @@ paused = False
 motion_num = 0
 motion_id = 0
 current_motion_id = -1
-controller = None
 
 def keyboard_callback(keycode):
-    global paused, motion_id, motion_num, controller
-    if chr(keycode) == ' ':
+    global paused, motion_id
+    if keycode == ord(' '):
         paused = not paused
-        if controller is not None and controller.is_available():
-            state = controller.get_state()
-            controller.set_state(state.frame_idx, paused=paused)
-    if chr(keycode) == '[':
+    if keycode == ord('['):
         motion_id = (motion_id - 1) % motion_num
-    if chr(keycode) == ']':
+    if keycode == ord(']'):
         motion_id = (motion_id + 1) % motion_num
 
 if __name__ == "__main__":
@@ -77,10 +73,11 @@ if __name__ == "__main__":
                             camera_follow=False,
                             record_video=args.record_video, video_path=args.video_path, 
                             keyboard_callback=keyboard_callback)
+    print("Viewer controls: Space = pause/resume, [ = previous motion, ] = next motion.")
     
     frame_idx = 0
     try:
-        while True:
+        while env.viewer.is_running():
             # get current motion
             if current_motion_id != motion_id:
                 current_motion_id = motion_id
@@ -92,22 +89,6 @@ if __name__ == "__main__":
                 motion_root_rot = motion_data["motion_root_rot"]
                 motion_dof_pos = motion_data["motion_dof_pos"]
                 print(f"Switched to motion {motion_id}: {motion_file}, fps: {motion_fps}, num_frames: {len(motion_root_pos)}")
-                if controller is not None:
-                    controller.close()
-                controller = PlaybackController(
-                    num_frames=len(motion_root_pos),
-                    title=f"Dataset Playback: {motion_file}",
-                )
-                if controller.is_available():
-                    controller.set_state(0, paused=paused)
-            
-            if controller is not None and controller.is_available():
-                controller.apply_pending_commands()
-                if controller.is_closed():
-                    break
-                state = controller.get_state()
-                frame_idx = state.frame_idx
-                paused = state.paused
 
             env.step(
                 motion_root_pos[frame_idx],
@@ -121,9 +102,5 @@ if __name__ == "__main__":
                 if frame_idx >= len(motion_root_pos):
                     frame_idx = 0
 
-            if controller is not None and controller.is_available():
-                controller.set_state(frame_idx, paused=paused)
     finally:
-        if controller is not None:
-            controller.close()
         env.close()

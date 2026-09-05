@@ -71,6 +71,11 @@ class RobotMotionViewer:
         self.xml_path = ROBOT_XML_DICT[robot_type]
         self.model = mj.MjModel.from_xml_path(str(self.xml_path))
         self.data = mj.MjData(self.model)
+        # Keep world lights at their original offset from the moving robot.
+        self.world_light_ids = np.flatnonzero(self.model.light_bodyid == 0)
+        self.world_light_offsets = (
+            self.model.light_pos[self.world_light_ids].copy() - self.model.qpos0[:3]
+        )
         self.robot_base = ROBOT_BASE_DICT[robot_type]
         self.viewer_cam_distance = VIEWER_CAM_DISTANCE_DICT[robot_type]
         mj.mj_step(self.model, self.data)
@@ -139,6 +144,9 @@ class RobotMotionViewer:
         self.data.qpos[:3] = root_pos
         self.data.qpos[3:7] = root_rot # quat need to be scalar first! for mujoco
         self.data.qpos[7:] = dof_pos
+        self.model.light_pos[self.world_light_ids] = (
+            self.world_light_offsets + self.data.qpos[:3]
+        )
         
         mj.mj_forward(self.model, self.data)
         

@@ -210,6 +210,8 @@ python scripts/pkl_to_npz.py \
 
 #### 6.3.2 Visualize Retargeted Motion
 
+With the MuJoCo viewer focused, press **Space** to pause/resume in either script. In dataset browsing, press **[** for the previous motion or **]** for the next motion. Playback controls are keyboard-only; there is no separate frame-seeking window.
+
 ```bash
 # Single motion
 python scripts/vis_robot_motion.py \
