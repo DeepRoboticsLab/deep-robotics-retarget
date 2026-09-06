@@ -74,26 +74,26 @@ assets/body_models/smplx/
 
 ### 5.1 系统要求
 
-- Python >= 3.10
-- Linux（推荐 Ubuntu 22.04 / 24.04）
+- Python == 3.11
+- Linux (Ubuntu 22.04 / 24.04 recommended)
 
-### 5.2 安装步骤
+### 5.2 Install Steps
 
 > [!NOTE]
-> 本项目已在 Ubuntu 24.04 操作系统上完成测试。
+> This project has been tested on Ubuntu 24.04.
 
-首先创建 Conda 环境：
+First, create a Conda environment:
 
 ```bash
-conda create -n retarget python=3.10 -y
-conda activate retarget
+conda create -n deep-robotics-humanoid  python=3.11 -y # This conda environment is compatible with the deep-robotics-mimic repository
+conda activate deep-robotics-humanoid 
 ```
 
 然后克隆仓库并安装：
 
 ```bash
 # 克隆仓库
-git clone [to do]
+git clone https://github.com/DeepRoboticsLab/deep-robotics-retarget.git
 cd deep-robotics-retarget
 
 # 更新 libstdc++
@@ -102,6 +102,12 @@ conda install -c conda-forge libstdcxx-ng -y
 # 安装包
 pip install -e .
 ```
+
+> [!TIP]
+> 如果使用 `pip install .`（非可编辑模式）安装，需要将环境变量设置为项目根目录：
+> ```bash
+> export DEEP_ROBOTICS_RETARGET_ROOT=/path/to/deep-robotics-retarget
+> ```
 
 安装 PICO SDK：
 

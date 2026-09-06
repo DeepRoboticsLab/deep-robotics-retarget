@@ -13,7 +13,7 @@ setup(
     "loop_rate_limiters",
     "mink",
     "mujoco",
-    "numpy",
+    "numpy>=1.26.0,<2.0",
     "scipy",
     "qpsolvers[proxqp]",
     "rich",
@@ -27,5 +27,5 @@ setup(
     "imageio[ffmpeg]",
     "matplotlib",
   ],
-  python_requires='>=3.10',
+  python_requires='>=3.11,<3.12',
 )

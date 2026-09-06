@@ -13,12 +13,27 @@ Usage:
 
 import argparse
 import glob
+import importlib
 import os
 import pickle
+import sys
 
 import numpy as np
 from scipy.interpolate import interp1d
 from scipy.spatial.transform import Rotation, Slerp
+
+if not hasattr(np, "_core"):
+    # Pickles written under numpy 2.x reference the internal `numpy._core`
+    # module (renamed from `numpy.core` in numpy 2). Register aliases so these
+    # files can still be loaded under numpy 1.x.
+    sys.modules.setdefault("numpy._core", np.core)
+    for _name in ("multiarray", "_multiarray_umath", "umath", "numeric", "numerictypes"):
+        try:
+            sys.modules.setdefault(
+                f"numpy._core.{_name}", importlib.import_module(f"numpy.core.{_name}")
+            )
+        except ImportError:
+            pass
 
 
 TARGET_FPS = 50

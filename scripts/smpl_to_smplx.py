@@ -9,8 +9,24 @@ Usage:
 
 import os
 import argparse
+import importlib
+import sys
+
 import numpy as np
 from tqdm import tqdm
+
+if not hasattr(np, "_core"):
+    # SMPL npz files written under numpy 2.x may contain object arrays that
+    # reference the internal `numpy._core` module (renamed from `numpy.core`
+    # in numpy 2). Register aliases so they can still be loaded under numpy 1.x.
+    sys.modules.setdefault("numpy._core", np.core)
+    for _name in ("multiarray", "_multiarray_umath", "umath", "numeric", "numerictypes"):
+        try:
+            sys.modules.setdefault(
+                f"numpy._core.{_name}", importlib.import_module(f"numpy.core.{_name}")
+            )
+        except ImportError:
+            pass
 
 def convert_smpl_to_smplx(input_path, output_path, gender='neutral'):
     # Load SMPL data

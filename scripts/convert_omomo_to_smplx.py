@@ -13,6 +13,21 @@ import joblib
 import numpy as np
 import pickle
 import argparse
+import importlib
+import sys
+
+if not hasattr(np, "_core"):
+    # OMOMO pickles written under numpy 2.x reference the internal
+    # `numpy._core` module (renamed from `numpy.core` in numpy 2). Register
+    # aliases so they can still be loaded under numpy 1.x.
+    sys.modules.setdefault("numpy._core", np.core)
+    for _name in ("multiarray", "_multiarray_umath", "umath", "numeric", "numerictypes"):
+        try:
+            sys.modules.setdefault(
+                f"numpy._core.{_name}", importlib.import_module(f"numpy.core.{_name}")
+            )
+        except ImportError:
+            pass
 
 
 if __name__ == "__main__":

@@ -5,6 +5,9 @@ through the body model, and extract per-frame joint positions/orientations
 for retargeting.
 """
 
+import importlib
+import sys
+
 import numpy as np
 import smplx
 import torch
@@ -13,6 +16,20 @@ from smplx.joint_names import JOINT_NAMES
 from scipy.interpolate import interp1d
 
 import general_motion_retargeting.utils.lafan_vendor.utils as utils
+
+if not hasattr(np, "_core"):
+    # Files written under numpy 2.x (SMPL/SMPLX npz with object arrays, torch
+    # checkpoints, etc.) reference the internal `numpy._core` module (renamed
+    # from `numpy.core` in numpy 2). Register aliases so they can still be
+    # loaded under numpy 1.x.
+    sys.modules.setdefault("numpy._core", np.core)
+    for _name in ("multiarray", "_multiarray_umath", "umath", "numeric", "numerictypes"):
+        try:
+            sys.modules.setdefault(
+                f"numpy._core.{_name}", importlib.import_module(f"numpy.core.{_name}")
+            )
+        except ImportError:
+            pass
 
 def load_smpl_file(smpl_file):
     smpl_data = np.load(smpl_file, allow_pickle=True)
