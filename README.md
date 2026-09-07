@@ -73,7 +73,7 @@ Capture the required data using Nokov motion capture equipment. For quick start,
 
 ### 5.1 Requirements
 
-- Python >= 3.10
+- Python == 3.11
 - Linux (Ubuntu 22.04 / 24.04 recommended)
 
 ### 5.2 Install Steps
@@ -84,8 +84,8 @@ Capture the required data using Nokov motion capture equipment. For quick start,
 First, create a Conda environment:
 
 ```bash
-conda create -n retarget python=3.10 -y
-conda activate retarget
+conda create -n deep-robotics-humanoid  python=3.11 -y # This conda environment is compatible with the deep-robotics-mimic repository
+conda activate deep-robotics-humanoid 
 ```
 
 Then clone the repository and install:
@@ -98,7 +98,7 @@ cd deep-robotics-retarget
 # Update libstdc++
 conda install -c conda-forge libstdcxx-ng -y
 
-# Install the package (editable mode recommended)
+# Install the package
 pip install -e .
 ```
 

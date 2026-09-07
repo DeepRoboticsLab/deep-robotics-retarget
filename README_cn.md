@@ -75,17 +75,17 @@ assets/body_models/smplx/
 ### 5.1 系统要求
 
 - Python == 3.11
-- Linux (Ubuntu 22.04 / 24.04 recommended)
+- Linux（推荐 Ubuntu 22.04 / 24.04）
 
-### 5.2 Install Steps
+### 5.2 安装步骤
 
 > [!NOTE]
-> This project has been tested on Ubuntu 24.04.
+> 本项目已在 Ubuntu 24.04 操作系统上完成测试。
 
-First, create a Conda environment:
+首先创建 Conda 环境：
 
 ```bash
-conda create -n deep-robotics-humanoid  python=3.11 -y # This conda environment is compatible with the deep-robotics-mimic repository
+conda create -n deep-robotics-humanoid  python=3.11 -y # 该conda环境可与deep-robotics-mimic仓库兼容
 conda activate deep-robotics-humanoid 
 ```
 
