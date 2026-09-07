@@ -81,10 +81,12 @@ Capture the required data using Nokov motion capture equipment. For quick start,
 > [!NOTE]
 > This project has been tested on Ubuntu 24.04.
 
-First, create a Conda environment:
+Use the same `deep-robotics-humanoid` environment as `deep-robotics-mimic`. If it already exists, only activate it. Follow Mimic's installation instructions for the Isaac Lab training stack.
+
+For a new environment:
 
 ```bash
-conda create -n deep-robotics-humanoid  python=3.11 -y # This conda environment is compatible with the deep-robotics-mimic repository
+conda create -n deep-robotics-humanoid -c conda-forge python=3.11 libstdcxx-ng -y
 conda activate deep-robotics-humanoid 
 ```
 
@@ -95,11 +97,8 @@ Then clone the repository and install:
 git clone https://github.com/DeepRoboticsLab/deep-robotics-retarget.git
 cd deep-robotics-retarget
 
-# Update libstdc++
-conda install -c conda-forge libstdcxx-ng -y
-
 # Install the package
-pip install -e .
+python -m pip install -e .
 ```
 
 > [!TIP]

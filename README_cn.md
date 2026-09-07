@@ -82,10 +82,12 @@ assets/body_models/smplx/
 > [!NOTE]
 > 本项目已在 Ubuntu 24.04 操作系统上完成测试。
 
-首先创建 Conda 环境：
+与 `deep-robotics-mimic` 共用 `deep-robotics-humanoid` 环境；如果环境已存在，只需激活。Isaac Lab 训练环境请按照 Mimic 的安装说明配置。
+
+新环境创建步骤：
 
 ```bash
-conda create -n deep-robotics-humanoid  python=3.11 -y # 该conda环境可与deep-robotics-mimic仓库兼容
+conda create -n deep-robotics-humanoid -c conda-forge python=3.11 libstdcxx-ng -y
 conda activate deep-robotics-humanoid 
 ```
 
@@ -96,11 +98,8 @@ conda activate deep-robotics-humanoid
 git clone https://github.com/DeepRoboticsLab/deep-robotics-retarget.git
 cd deep-robotics-retarget
 
-# 更新 libstdc++
-conda install -c conda-forge libstdcxx-ng -y
-
 # 安装包
-pip install -e .
+python -m pip install -e .
 ```
 
 > [!TIP]
