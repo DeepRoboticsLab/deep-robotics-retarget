@@ -81,12 +81,12 @@ Capture the required data using Nokov motion capture equipment. For quick start,
 > [!NOTE]
 > This project has been tested on Ubuntu 24.04.
 
-Use the same `deep-robotics-humanoid` environment as `deep-robotics-mimic`. If it already exists, only activate it. Follow Mimic's installation instructions for the Isaac Lab training stack.
+Create a Python 3.11 Conda environment for this project. If `deep-robotics-humanoid` already exists, activate it and skip creation. The MuJoCo retargeting workflow can be installed independently of Isaac Lab.
 
 For a new environment:
 
 ```bash
-conda create -n deep-robotics-humanoid -c conda-forge python=3.11 libstdcxx-ng -y
+conda create -n deep-robotics-humanoid -c conda-forge python=3.11 "libstdcxx-ng>=15" -y
 conda activate deep-robotics-humanoid 
 ```
 
@@ -100,6 +100,16 @@ cd deep-robotics-retarget
 # Install the package
 python -m pip install -e .
 ```
+
+Configure the C++ runtime from this repository (Linux/Bash):
+
+```bash
+python scripts/setup_conda_runtime.py
+conda deactivate
+conda activate deep-robotics-humanoid
+```
+
+The script checks that Conda's `libstdc++.so.6` provides `CXXABI_1.3.15` and installs activation/deactivation hooks in the active environment. These preload Conda's runtime to avoid native-library failures caused by loading an older system copy. If the runtime is missing or outdated, run `conda install -c conda-forge "libstdcxx-ng>=15"`, then retry. Re-running setup is safe; existing `LD_PRELOAD` settings are restored on deactivation, and system libraries are unchanged. Restart existing Python processes after reactivation. The hook does not install Python dependencies: if `mujoco` or another module is missing, complete `python -m pip install -e .` in this environment.
 
 > [!TIP]
 > If using `pip install .` (non-editable mode), you need to set the environment variable to the project root:

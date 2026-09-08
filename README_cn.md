@@ -82,12 +82,12 @@ assets/body_models/smplx/
 > [!NOTE]
 > 本项目已在 Ubuntu 24.04 操作系统上完成测试。
 
-与 `deep-robotics-mimic` 共用 `deep-robotics-humanoid` 环境；如果环境已存在，只需激活。Isaac Lab 训练环境请按照 Mimic 的安装说明配置。
+为本项目创建 Python 3.11 Conda 环境。如果 `deep-robotics-humanoid` 已存在，请直接激活并跳过创建步骤。MuJoCo 重定向流程可以独立安装，无需安装 Isaac Lab。
 
 新环境创建步骤：
 
 ```bash
-conda create -n deep-robotics-humanoid -c conda-forge python=3.11 libstdcxx-ng -y
+conda create -n deep-robotics-humanoid -c conda-forge python=3.11 "libstdcxx-ng>=15" -y
 conda activate deep-robotics-humanoid 
 ```
 
@@ -101,6 +101,16 @@ cd deep-robotics-retarget
 # 安装包
 python -m pip install -e .
 ```
+
+从本仓库配置 C++ 运行库（Linux/Bash）：
+
+```bash
+python scripts/setup_conda_runtime.py
+conda deactivate
+conda activate deep-robotics-humanoid
+```
+
+脚本检查 Conda 的 `libstdc++.so.6` 是否提供 `CXXABI_1.3.15`，并在当前环境中安装激活/退出钩子，优先加载 Conda 运行库，避免加载旧系统库引发的原生依赖错误。如果运行库缺失或版本过低，请执行 `conda install -c conda-forge "libstdcxx-ng>=15"` 后重试。脚本可重复执行；退出环境时恢复原有 `LD_PRELOAD`，不修改系统库。重新激活后请重启已有 Python 进程。钩子不会安装 Python 依赖；若缺少 `mujoco` 等模块，请在当前环境中完成 `python -m pip install -e .`。
 
 > [!TIP]
 > 如果使用 `pip install .`（非可编辑模式）安装，需要将环境变量设置为项目根目录：
