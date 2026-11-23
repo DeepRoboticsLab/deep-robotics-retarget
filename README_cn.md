@@ -10,6 +10,8 @@
 
 deep-robotics-retarget 是一个 Python 工具包，使用逆运动学（IK）将人体运动数据重定向到人形机器人关节配置。支持多种人体运动数据来源，并提供基于 MuJoCo 的实时可视化，目前该项目支持 DR02 Pro 型号机器人。
 
+完成动作重定向后，请参阅 [deep-robotics-mimic](https://github.com/DeepRoboticsLab/deep-robotics-mimic)，训练并部署跟踪这些参考动作的 DR02 Pro 策略。
+
 本项目基于[GMR](https://github.com/YanjieZe/GMR/tree/master)项目修改。
 
 ## 2. 功能特性

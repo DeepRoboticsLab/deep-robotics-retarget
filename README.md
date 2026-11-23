@@ -10,6 +10,8 @@
 
 deep-robotics-retarget is a Python toolkit that uses inverse kinematics (IK) to retarget human motion data to humanoid robot joint configurations. It supports multiple human motion data sources and provides real-time visualization based on MuJoCo. Currently, the project supports the DR02 Pro robot model.
 
+After retargeting your motions, follow [deep-robotics-mimic](https://github.com/DeepRoboticsLab/deep-robotics-mimic) to train and deploy a DR02 Pro policy that tracks them.
+
 This project is modified from the [GMR](https://github.com/YanjieZe/GMR/tree/master) project.
 
 ## 2. Features
